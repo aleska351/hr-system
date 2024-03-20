@@ -1,0 +1,49 @@
+server:
+  port: 8081
+  servlet:
+    session:
+      timeout: 1800
+      cookie:
+        http-only: true
+        secure: true
+
+springdoc:
+  default-produces-media-type: application/json
+  
+      
+spring:
+  application:
+    name: bdacs_user_service
+  main:
+    allow-bean-definition-overriding: true
+  profiles:
+    active: dev
+  jpa:
+    hibernate:
+      hbm2ddl:
+        auto: none
+      ddl-auto: none
+      dialect: org.hibernate.dialect.MySQL8Dialect
+    
+  datasource:
+    username: root
+    password: root
+    url: jdbc:mysql://localhost:3306/hr_system?serverTimeZone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    testOnBorrow: true
+    validationQuery: SELECT 1
+    liquibase:
+      change-log: classpath:liquibase/db.changelog-master.xml
+    hikari:
+      maximum-pool-size: 5
+      max-lifetime: 1800000
+    
+
+jwt:
+  access:
+    secret: kops8sf2sm13eedfn7874jknvhkfjm09snknhnkfh884834dr609537xxd67d9w585ikmfvlknvndhsiuhfirjkdjsjus8dfnfrey87wefnjlernhfoydss9hms1
+    expired: 1800000
+  refresh:
+    expired: 43200000
+  temp:
+    expired: 900000
