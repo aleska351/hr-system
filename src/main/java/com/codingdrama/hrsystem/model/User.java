@@ -1,6 +1,7 @@
 package com.codingdrama.hrsystem.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -53,6 +54,7 @@ public class User extends BaseEntity {
     @Column(unique = true, nullable = false)
     private String telegram;
     
+    
     @OneToOne
     private Address address;
     
@@ -64,6 +66,16 @@ public class User extends BaseEntity {
 
     @Column
     private boolean emailVerified;
+    @Column
+    private boolean mfaEnabled;
+    @Column
+    private boolean authenticated;
+    
+    @Column
+    private String secret;
+
+    @Column
+    private String hash;
     
     @Column
     @Enumerated(EnumType.STRING)

@@ -14,10 +14,9 @@ import java.util.List;
 @EqualsAndHashCode
 @ToString
 @NoArgsConstructor
-public class RoleDto {
+public class PermissionDto {
 
     private Long id;
     private String name;
-    private List<Long> userIds;
-    private List<PermissionDto> permissions;
+    private String description;
 }

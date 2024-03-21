@@ -1,14 +1,22 @@
 package com.codingdrama.hrsystem.service.dto;
 
 import com.codingdrama.hrsystem.model.UserStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -32,8 +40,29 @@ public class UserDto {
     private UserStatus status;
     private Long departmentId;
     private Long companyId;
+    
+    private boolean mfaEnabled;
+    private boolean authenticated;
+    
+    private String secret;
+    private String hash;
+    
+    private LocalDateTime loginDate;
+    
     private List<Long> projectIds;
     private List<Long> technologyIds;
     private List<Long> salaryIds;
-    private List<Long> roleIds;
+    private Set<RoleDto> roles;
+    
+     public List<GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .flatMap(role ->
+                        Stream.concat(
+                                Stream.of(role.getName()),
+                                role.getPermissions().stream().map(PermissionDto::getName)))
+                .distinct()
+                .toList().stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
 }
