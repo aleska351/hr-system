@@ -13,7 +13,7 @@ springdoc:
       
 spring:
   application:
-    name: bdacs_user_service
+    name: hr-platform
   main:
     allow-bean-definition-overriding: true
   profiles:
@@ -37,13 +37,42 @@ spring:
     hikari:
       maximum-pool-size: 5
       max-lifetime: 1800000
-    
+      
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: alona.honcharenko@nure.ua
+    password: rexona14085
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 jwt:
   access:
-    secret: kops8sf2sm13eedfn7874jknvhkfjm09snknhnkfh884834dr609537xxd67d9w585ikmfvlknvndhsiuhfirjkdjsjus8dfnfrey87wefnjlernhfoydss9hms1
+    secret: {KEY}
     expired: 1800000
   refresh:
     expired: 43200000
   temp:
     expired: 900000
+    
+auth:
+  email:
+    secure:
+      token:
+        expired: 600 #10 min
+  mfa:
+    passphrases:
+      expired: 600
+  password:
+#    expired: 7776000000 #90 days
+    expired: 86400000 #1 days
+  db:
+    encrypt:
+      key: {KEY}
+  allowed:
+    origin:
+      patterns: "*"
