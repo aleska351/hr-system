@@ -44,14 +44,13 @@ public class CompanyServiceImpl implements CompanyService {
         if (companyRepository.existsByCompanyCode(createCompanyRequest.getCompanyCode())) {
             throw new LocalizedResponseStatusException(HttpStatus.BAD_REQUEST, "company.already.exist");
         }
-
-        String hash = UUID.randomUUID().toString();
+        
         Company company = modelMapper.map(createCompanyRequest, Company.class);
         company.setCompanyStatus(CompanyStatus.CREATED);
 
         Company createdCompany = companyRepository.save(company);
 
-        return null;
+        return modelMapper.map(createdCompany, CompanyDto.class);
     }
 
     @Override

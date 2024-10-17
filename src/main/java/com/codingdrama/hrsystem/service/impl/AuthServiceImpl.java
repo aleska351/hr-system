@@ -38,13 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -59,9 +56,6 @@ public class AuthServiceImpl implements AuthService {
     private PasswordEncoder passwordEncoder;
 
     private ModelMapper modelMapper;
-
-    private final Map<String, Integer> attemptsCache = new ConcurrentHashMap<>();
-    private final int maxAttempts = 5;
 
     @Value("${auth.password.expired}")
     private int passwordExpirationTime;
@@ -85,7 +79,6 @@ public class AuthServiceImpl implements AuthService {
         String hash = UUID.randomUUID().toString();
         User user = modelMapper.map(request, User.class);
         encodePassword(request, user);
-        Date now = new Date();
         user.setPasswordExpiredDate(LocalDateTime.now().plus( passwordExpirationTime, ChronoUnit.SECONDS));
         user.setHash(hash);
 
@@ -180,8 +173,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void updatePasswordLatter(String email) {
         User user = getOrThrowNotFound(email);
-        Date now = new Date();
-//        user.setPasswordExpiredDate(new Date(now.getTime() + passwordExpirationTime));
+        user.setPasswordExpiredDate(LocalDateTime.now().plus(passwordExpirationTime, ChronoUnit.SECONDS));
         userRepository.save(user);
         log.info("Password updating for email {} was reject for next 90 days", email);
     }
