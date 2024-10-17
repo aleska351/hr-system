@@ -17,7 +17,7 @@ spring:
   main:
     allow-bean-definition-overriding: true
   profiles:
-    active: dev
+    active: beta
   jpa:
     hibernate:
       hbm2ddl:
