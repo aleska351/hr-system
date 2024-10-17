@@ -1,16 +1,17 @@
 package com.codingdrama.hrsystem.service;
 
 
-import com.codingdrama.hrsystem.service.dto.CreateUserResponse;
+import com.codingdrama.hrsystem.service.dto.CreateUserRequest;
 import com.codingdrama.hrsystem.service.dto.UserDto;
 
 import java.util.List;
 
 public interface UserService extends BaseService<UserDto> {
-    CreateUserResponse register(UserDto user, String role);
+    UserDto createUser(CreateUserRequest user);
+    UserDto updateUser(UserDto user);
 
 
-    UserDto findByUsername(String username);
+    UserDto findByEmail(String email);
 
     List<UserDto> getByDepartment(Long departmentId);
 

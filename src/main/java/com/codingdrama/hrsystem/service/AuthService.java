@@ -4,9 +4,7 @@ import com.codingdrama.hrsystem.exceptions.LocalizedResponseStatusException;
 import com.codingdrama.hrsystem.security.AuthenticatedUserDetails;
 import com.codingdrama.hrsystem.service.dto.LoginRequestDto;
 import com.codingdrama.hrsystem.service.dto.LoginResponseDto;
-import com.codingdrama.hrsystem.service.dto.MfaTokenData;
 import com.codingdrama.hrsystem.service.dto.UserDto;
-import dev.samstevens.totp.exceptions.QrGenerationException;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -29,23 +27,6 @@ public interface AuthService {
      * @return a LoginResponseDto object containing user information and an authentication token
      */
     LoginResponseDto login(LoginRequestDto loginRequest, HttpServletRequest httpServletRequest);
-
-    /**
-     * Initiates the process of setting up MFA for a user and returns the MfaTokenData object with QR code data.
-     * @param email the email address of the user requesting MFA setup
-     * @return an MfaTokenData object with QR code data
-     * @throws QrGenerationException if an error occurs while generating the QR code
-     */
-    MfaTokenData mfaSetup(final String email) throws QrGenerationException;
-
-    /**
-     * Verifies the user's MFA token and returns a LoginResponseDto object with the user's information and an authentication token.
-     * @param email the email address of the user verifying their MFA token
-     * @param token the MFA token to verify
-     * @param ip the IP address of the user making the request
-     * @return a LoginResponseDto object containing user information and an authentication token
-     */
-    LoginResponseDto verifyUserMfa(String email, String token, String ip);
 
     /**
      * Verifies a user's email address using a confirmation token.

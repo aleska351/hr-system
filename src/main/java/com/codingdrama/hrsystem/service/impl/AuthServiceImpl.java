@@ -10,16 +10,13 @@ import com.codingdrama.hrsystem.service.AuthService;
 import com.codingdrama.hrsystem.service.SecureTokenService;
 import com.codingdrama.hrsystem.service.dto.LoginRequestDto;
 import com.codingdrama.hrsystem.service.dto.LoginResponseDto;
-import com.codingdrama.hrsystem.service.dto.MfaTokenData;
 import com.codingdrama.hrsystem.service.dto.UserDto;
 import com.codingdrama.hrsystem.service.email.context.AccountRecoveryEmailContext;
 import com.codingdrama.hrsystem.service.email.context.AccountVerificationEmailContext;
 import com.codingdrama.hrsystem.service.email.context.PasswordResetEmailVerificationContext;
 import com.codingdrama.hrsystem.service.email.context.SuccessLoginEmailContext;
 import com.codingdrama.hrsystem.service.email.service.EmailService;
-import com.codingdrama.hrsystem.service.mfa.MfaTokenManager;
 import com.codingdrama.hrsystem.util.UserUtil;
-import dev.samstevens.totp.exceptions.QrGenerationException;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,7 +30,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,7 +37,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +53,6 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
-    private final MfaTokenManager mfaTokenManager;
     private final EmailService emailService;
 
     private final SecureTokenService secureTokenService;
@@ -71,11 +67,10 @@ public class AuthServiceImpl implements AuthService {
     private int passwordExpirationTime;
 
 
-    public AuthServiceImpl(UserRepository userRepository, JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager, MfaTokenManager mfaTokenManager, EmailService emailService, SecureTokenService secureTokenService) {
+    public AuthServiceImpl(UserRepository userRepository, JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager, EmailService emailService, SecureTokenService secureTokenService) {
         this.userRepository = userRepository;
         this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationManager = authenticationManager;
-        this.mfaTokenManager = mfaTokenManager;
         this.emailService = emailService;
         this.secureTokenService = secureTokenService;
     }
@@ -90,9 +85,8 @@ public class AuthServiceImpl implements AuthService {
         String hash = UUID.randomUUID().toString();
         User user = modelMapper.map(request, User.class);
         encodePassword(request, user);
-        user.setSecret(mfaTokenManager.generateSecretKey());
         Date now = new Date();
-//        user.setPasswordExpiredDate(new Date(now.getTime() + passwordExpirationTime));
+        user.setPasswordExpiredDate(LocalDateTime.now().plus( passwordExpirationTime, ChronoUnit.SECONDS));
         user.setHash(hash);
 
         User savedUser = userRepository.save(user);
@@ -105,7 +99,7 @@ public class AuthServiceImpl implements AuthService {
 
         Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authenticate);
-        String token = jwtTokenProvider.createToken(request.getEmail(), user.isAuthenticated(), hash, ip, authenticate.getAuthorities());
+        String token = jwtTokenProvider.createToken(request.getEmail(), hash, ip, authenticate.getAuthorities());
 
         return new LoginResponseDto(userDto, token, null);
 
@@ -126,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
             Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, loginRequest.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authenticate);
 
-            String token = jwtTokenProvider.createToken(username, false, hash, ip, authenticate.getAuthorities());
+            String token = jwtTokenProvider.createToken(username, hash, ip, authenticate.getAuthorities());
             UserDto userDto = modelMapper.map(updatedUser, UserDto.class);
             if (!user.isEmailVerified()) resendEmailConfirmationEmail(new AuthenticatedUserDetails(userDto));
             log.info("Success login from email {} from ip {} at time {}", username, ip, LocalDateTime.now());
@@ -135,41 +129,6 @@ public class AuthServiceImpl implements AuthService {
             log.error("Attempt to invalid login for email {} from ip {} at time {}", username, ip, LocalDateTime.now());
             throw new LocalizedResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid.credentials");
         }
-    }
-
-    @Override
-    public MfaTokenData mfaSetup(String email) throws QrGenerationException {
-        User user = getOrThrowNotFound(email);
-        if (user.isMfaEnabled()) {
-            throw new LocalizedResponseStatusException(HttpStatus.BAD_REQUEST, "mfa.is.already.confirmed");
-        }
-        return new MfaTokenData(mfaTokenManager.getQRCode(user.getSecret(), email), user.getSecret());
-    }
-
-    @Transactional
-    @Override
-    public LoginResponseDto verifyUserMfa(String email, String token, String ip) {
-        User user = getOrThrowNotFound(email);
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        if (!mfaTokenManager.verifyTotp(token, user.getSecret())) {
-            throw new LocalizedResponseStatusException(HttpStatus.BAD_REQUEST, "invalid.mfa.token");
-        }
-        user.setMfaEnabled(true);
-        user.setAuthenticated(true);
-
-        String hash = UUID.randomUUID().toString();
-        user.setHash(hash);
-        User updatedUser = userRepository.save(user);
-
-
-        log.info("Updated user {} :", updatedUser);
-        UserDto userDto = modelMapper.map(updatedUser, UserDto.class);
-        userDto.setLoginDate(LocalDateTime.now());
-
-        String accessToken = jwtTokenProvider.createToken(user.getEmail(), user.isAuthenticated(), hash, ip, authorities);
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail(), hash, ip);
-        log.info("Success verified 2fa from email {} from ip {} at time {}", userDto.getEmail(), ip, LocalDateTime.now());
-        return new LoginResponseDto(userDto, accessToken, refreshToken);
     }
 
     @Override
@@ -203,7 +162,7 @@ public class AuthServiceImpl implements AuthService {
 
         User updateUser = userRepository.save(user);
         UserDto userDto = modelMapper.map(updateUser, UserDto.class);
-        String token = jwtTokenProvider.createToken(email, false, hash, ip, userDto.getAuthorities());
+        String token = jwtTokenProvider.createToken(email, hash, ip, userDto.getAuthorities());
         log.info("Success request for changing password  for email {} at time {}", email, LocalDateTime.now());
         return new LoginResponseDto(userDto, token, null);
     }

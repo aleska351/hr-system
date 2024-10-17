@@ -2,6 +2,7 @@ package com.codingdrama.hrsystem.service.impl;
 
 
 import com.codingdrama.hrsystem.exceptions.LocalizedResponseStatusException;
+import com.codingdrama.hrsystem.model.Role;
 import com.codingdrama.hrsystem.model.User;
 import com.codingdrama.hrsystem.repository.CompanyRepository;
 import com.codingdrama.hrsystem.repository.DepartmentRepository;
@@ -9,9 +10,11 @@ import com.codingdrama.hrsystem.repository.ProjectRepository;
 import com.codingdrama.hrsystem.repository.RoleRepository;
 import com.codingdrama.hrsystem.repository.UserRepository;
 import com.codingdrama.hrsystem.service.UserService;
-import com.codingdrama.hrsystem.service.dto.CreateUserResponse;
+import com.codingdrama.hrsystem.service.dto.CreateUserRequest;
 import com.codingdrama.hrsystem.service.dto.RoleDto;
 import com.codingdrama.hrsystem.service.dto.UserDto;
+import com.codingdrama.hrsystem.service.email.context.WelcomeEmailContext;
+import com.codingdrama.hrsystem.service.email.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,33 +34,43 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final DepartmentRepository departmentRepository;
     private final CompanyRepository companyRepository;
+    private final EmailService emailService;
 
     private final ProjectRepository projectRepository;
 //    private final BCryptPasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, DepartmentRepository departmentRepository, CompanyRepository companyRepository, ProjectRepository projectRepository, ModelMapper modelMapper) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, DepartmentRepository departmentRepository, CompanyRepository companyRepository, EmailService emailService, ProjectRepository projectRepository, ModelMapper modelMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.departmentRepository = departmentRepository;
         this.companyRepository = companyRepository;
+        this.emailService = emailService;
         this.projectRepository = projectRepository;
         this.modelMapper = modelMapper;
     }
 
     @Override
-    public CreateUserResponse register(UserDto user, String role) {
-        departmentRepository.findById(user.getDepartmentId()).orElseThrow(() -> new LocalizedResponseStatusException(HttpStatus.NOT_FOUND, "department.not.found"));
-        RoleDto roleUser = modelMapper.map(roleRepository.findByName(role), RoleDto.class);
-        List<RoleDto> userRoles = new ArrayList<>(1);
-        userRoles.add(roleUser);
+    public UserDto createUser(CreateUserRequest request) {
+        departmentRepository.findById(request.getDepartmentId()).orElseThrow(() -> new LocalizedResponseStatusException(HttpStatus.NOT_FOUND, "department.not.found"));
+        List<Role> roleUser = roleRepository.findByNameIn(request.getRoles());
+//        .stream().map((role) -> modelMapper.map(role, RoleDto.class)).collect(Collectors.toList());
+//        List<RoleDto> userRoles = new ArrayList<>(1);
+//        userRoles.add(roleUser);
 //        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRoleIds(userRoles.stream().map(RoleDto::getId).collect(Collectors.toList()));
+        User user = modelMapper.map(request, User.class);
+        user.setRoles(roleUser);
 
         User registeredUser = userRepository.save(modelMapper.map(user, User.class));
+        sendWelcomeEmail(user);
         log.info("User: {} successfully registered", registeredUser);
-        return modelMapper.map(registeredUser, CreateUserResponse.class);
+        return modelMapper.map(registeredUser, UserDto.class);
+    }
+
+    @Override
+    public UserDto updateUser(UserDto user) {
+        return null;
     }
 
     @Override
@@ -73,7 +86,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto findByUsername(String email) {
+    public UserDto findByEmail(String email) {
         return modelMapper.map(userRepository.findByEmail(email).orElseThrow(() -> new LocalizedResponseStatusException(HttpStatus.NOT_FOUND, "user.not.found")), UserDto.class);
     }
 
@@ -108,5 +121,12 @@ public class UserServiceImpl implements UserService {
 
     private User getOrThrowNotFound(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new LocalizedResponseStatusException(HttpStatus.NOT_FOUND, "user.not.found"));
+    }
+    
+    private void sendWelcomeEmail(User user) {
+        WelcomeEmailContext emailContext = new WelcomeEmailContext();
+        emailContext.init(user);
+        emailService.sendMail(emailContext);
+        log.info("Welcome email was sent to user {}", user.getEmail());
     }
 }

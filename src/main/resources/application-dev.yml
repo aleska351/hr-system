@@ -1,0 +1,83 @@
+server:
+  port: 8081
+  servlet:
+    session:
+      timeout: 1800
+      cookie:
+        http-only: true
+        secure: true
+
+springdoc:
+  default-produces-media-type: application/json
+  
+      
+spring:
+  application:
+    name: hr-platform
+  main:
+    allow-bean-definition-overriding: true
+  profiles:
+    active: dev
+  jpa:
+    hibernate:
+      hbm2ddl:
+        auto: none
+      ddl-auto: none
+      dialect: org.hibernate.dialect.MySQL8Dialect
+    
+  datasource:
+    username: root
+    password: root
+    url: jdbc:mysql://localhost:3306/hr_system?serverTimeZone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    testOnBorrow: true
+    validationQuery: SELECT 1
+    liquibase:
+      change-log: classpath:liquibase/db.changelog-master.xml
+    hikari:
+      maximum-pool-size: 5
+      max-lifetime: 1800000
+      
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: {email}
+    password: {pass}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+jwt:
+  access:
+    secret: {key}
+    expired: 1800000
+  refresh:
+    expired: 43200000
+  temp:
+    expired: 900000
+    
+auth:
+  email:
+    secure:
+      token:
+        expired: 600 #10 min
+  mfa:
+    passphrases:
+      expired: 600
+  password:
+#    expired: 7776000000 #90 days
+    expired: 86400000 #1 days
+  db:
+    encrypt:
+      key: {KEY}
+  allowed:
+    origin:
+      patterns: "*"
+      
+email:
+  secure:
+    token:
+      expired: 840000
