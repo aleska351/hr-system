@@ -46,7 +46,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         Department createdDepartment = departmentRepository.save(department);
 
-        return null;
+        return modelMapper.map(createdDepartment, DepartmentDto.class);
     }
 
     @Override

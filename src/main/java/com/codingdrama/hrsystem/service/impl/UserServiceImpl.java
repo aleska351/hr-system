@@ -4,14 +4,11 @@ package com.codingdrama.hrsystem.service.impl;
 import com.codingdrama.hrsystem.exceptions.LocalizedResponseStatusException;
 import com.codingdrama.hrsystem.model.Role;
 import com.codingdrama.hrsystem.model.User;
-import com.codingdrama.hrsystem.repository.CompanyRepository;
 import com.codingdrama.hrsystem.repository.DepartmentRepository;
-import com.codingdrama.hrsystem.repository.ProjectRepository;
 import com.codingdrama.hrsystem.repository.RoleRepository;
 import com.codingdrama.hrsystem.repository.UserRepository;
 import com.codingdrama.hrsystem.service.UserService;
 import com.codingdrama.hrsystem.service.dto.CreateUserRequest;
-import com.codingdrama.hrsystem.service.dto.RoleDto;
 import com.codingdrama.hrsystem.service.dto.UserDto;
 import com.codingdrama.hrsystem.service.email.context.WelcomeEmailContext;
 import com.codingdrama.hrsystem.service.email.service.EmailService;
@@ -19,10 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,21 +30,18 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final DepartmentRepository departmentRepository;
-    private final CompanyRepository companyRepository;
     private final EmailService emailService;
-
-    private final ProjectRepository projectRepository;
-//    private final BCryptPasswordEncoder passwordEncoder;
+    
+    private final BCryptPasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, DepartmentRepository departmentRepository, CompanyRepository companyRepository, EmailService emailService, ProjectRepository projectRepository, ModelMapper modelMapper) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, DepartmentRepository departmentRepository, EmailService emailService, BCryptPasswordEncoder passwordEncoder, ModelMapper modelMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.departmentRepository = departmentRepository;
-        this.companyRepository = companyRepository;
         this.emailService = emailService;
-        this.projectRepository = projectRepository;
+        this.passwordEncoder = passwordEncoder;
         this.modelMapper = modelMapper;
     }
 
@@ -55,12 +49,9 @@ public class UserServiceImpl implements UserService {
     public UserDto createUser(CreateUserRequest request) {
         departmentRepository.findById(request.getDepartmentId()).orElseThrow(() -> new LocalizedResponseStatusException(HttpStatus.NOT_FOUND, "department.not.found"));
         List<Role> roleUser = roleRepository.findByNameIn(request.getRoles());
-//        .stream().map((role) -> modelMapper.map(role, RoleDto.class)).collect(Collectors.toList());
-//        List<RoleDto> userRoles = new ArrayList<>(1);
-//        userRoles.add(roleUser);
-//        user.setPassword(passwordEncoder.encode(user.getPassword()));
         User user = modelMapper.map(request, User.class);
         user.setRoles(roleUser);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         User registeredUser = userRepository.save(modelMapper.map(user, User.class));
         sendWelcomeEmail(user);
@@ -103,7 +94,7 @@ public class UserServiceImpl implements UserService {
         getOrThrowNotFound(id);
 
         user.setId(id);
-//        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         User updatedUser = userRepository.save(modelMapper.map(user, User.class));
         log.info("User: {} successfully updated", updatedUser);
