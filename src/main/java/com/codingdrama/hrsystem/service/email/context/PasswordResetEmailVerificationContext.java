@@ -12,8 +12,8 @@ public class PasswordResetEmailVerificationContext extends AbstractEmailContext 
     public <T> void init(T context){
         User user = (User) context;
         setTemplateLocation("emails/password-reset-email-verification");
-        setSubject("BDACS Account Email Verification");
-        setFrom("alerts@bdacs.co.kr");
+        setSubject("Account Email Verification");
+        setFrom("alonka.goncharenko1994@gmail.com");
         setTo(user.getEmail());
     }
 

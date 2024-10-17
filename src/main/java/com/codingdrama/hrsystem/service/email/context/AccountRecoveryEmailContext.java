@@ -14,7 +14,7 @@ public class AccountRecoveryEmailContext extends AbstractEmailContext {
     public <T> void init(T context){
         String email = (String) context;
         setTemplateLocation("emails/account-recovery");
-        setSubject("BDACS Account 2FA Recovery");
+        setSubject("Account 2FA Recovery");
         setFrom("alona.honcharenko@nure.ua");
         setTo(email);
     }

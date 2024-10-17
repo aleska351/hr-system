@@ -10,7 +10,7 @@ public class AccountVerificationEmailContext extends AbstractEmailContext {
         String email = (String) context;
         setTemplateLocation("emails/email-verification");
         setSubject("Complete your registration");
-        setFrom("alerts@bdacs.co.kr");
+        setFrom("alonka.goncharenko1994@gmail.com");
         setTo(email);
     }
 

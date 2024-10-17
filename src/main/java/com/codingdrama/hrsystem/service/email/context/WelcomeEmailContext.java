@@ -12,7 +12,7 @@ public class WelcomeEmailContext extends AbstractEmailContext {
         User customer = (User) context;
         setTemplateLocation("emails/welcome-email");
         setSubject("Welcome to HR platform!");
-        setFrom("alerts@bdacs.co.kr");
+        setFrom("alonka.goncharenko1994@gmail.com");
         setTo(customer.getEmail());
     }
 }

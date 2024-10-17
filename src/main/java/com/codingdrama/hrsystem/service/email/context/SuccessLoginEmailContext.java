@@ -13,9 +13,9 @@ public class SuccessLoginEmailContext extends AbstractEmailContext {
     public <T> void init(T context){
         User customer = (User) context;
         setTemplateLocation("emails/login-success");
-        setSubject("BDACS Account Login Notification");
+        setSubject("Account Login Notification");
         setTo(customer.getEmail());
-        setFrom("alerts@bdacs.co.kr");
+        setFrom("alonka.goncharenko1994@gmail.com");
         setTo(customer.getEmail());
     }
 

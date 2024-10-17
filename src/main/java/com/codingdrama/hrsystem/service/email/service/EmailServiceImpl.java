@@ -45,7 +45,7 @@ public class EmailServiceImpl implements EmailService {
             mimeMessageHelper.setSubject(email.getSubject());
             mimeMessageHelper.setFrom(email.getFrom());
             mimeMessageHelper.setText(emailContent, true);
-            mimeMessageHelper.addInline("bdacs-logo.jpg", new ClassPathResource("templates/emails/bdacs-logo.jpg"));
+            mimeMessageHelper.addInline("logo.jpg", new ClassPathResource("templates/emails/logo.jpg"));
 
 
             return message;
