@@ -8,7 +8,8 @@ import java.util.List;
 
 public interface UserService extends BaseService<UserDto> {
     UserDto createUser(CreateUserRequest user);
-    UserDto updateUser(UserDto user);
+    
+    UserDto updateUser(Long id, UserDto user);
 
 
     UserDto findByEmail(String email);

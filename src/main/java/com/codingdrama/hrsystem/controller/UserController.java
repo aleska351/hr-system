@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/user")
+@RequestMapping("/v1/users")
 public class UserController {
 
     private final UserService userService;
@@ -25,7 +25,7 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public List<UserDto> getCompanies() {
+    public List<UserDto> getAllUsers() {
         return userService.getAll();
     }
 
@@ -41,7 +41,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     public UserDto updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
-        return userService.updateUser(userDto);
+        return userService.updateUser(id, userDto);
     }
 
     @DeleteMapping("/{id}")

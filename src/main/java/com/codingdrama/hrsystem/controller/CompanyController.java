@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/company")
+@RequestMapping("/v1/companies")
 public class CompanyController {
 
     private final CompanyService companyService;

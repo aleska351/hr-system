@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.codingdrama.hrsystem.util.FieldUtil.updateFields;
+
 @Service
 @Transactional
 @Slf4j
@@ -60,8 +62,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto updateUser(UserDto user) {
-        return null;
+    public UserDto updateUser(Long id, UserDto user) {
+        User existedUser = getOrThrowNotFound(id);
+        updateFields(user, existedUser);
+        return modelMapper.map(userRepository.save(existedUser), UserDto.class);
     }
 
     @Override
@@ -73,7 +77,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getById(Long id) {
-        return modelMapper.map(userRepository.findById(id).orElseThrow(() -> new LocalizedResponseStatusException(HttpStatus.NOT_FOUND, "user.not.found")), UserDto.class);
+        return modelMapper.map(getOrThrowNotFound(id), UserDto.class);
     }
 
     @Override
