@@ -16,8 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.codingdrama.hrsystem.util.FieldUtil.updateFields;
 
 @Service
 @Transactional
@@ -59,7 +60,9 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public CompanyDto updateCompany(Long id, CompanyDto company) {
-        return null;
+        Company existedCompany = getOrThrowNotFound(id);
+        updateFields(company, existedCompany);
+        return modelMapper.map(companyRepository.save(existedCompany), CompanyDto.class);
     }
 
     @Override
@@ -69,12 +72,16 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public CompanyDto getById(Long id) {
-          return modelMapper.map(companyRepository.findById(id).orElseThrow(() -> new LocalizedResponseStatusException(HttpStatus.NOT_FOUND, "company.not.found")), CompanyDto.class);
+          return modelMapper.map(getOrThrowNotFound(id), CompanyDto.class);
     }
 
     @Override
     public void delete(Long id) {
-        companyRepository.findById(id).orElseThrow(() -> new LocalizedResponseStatusException(HttpStatus.NOT_FOUND, "company.not.found"));
+        getOrThrowNotFound(id);
         companyRepository.deleteById(id);
+    }
+    
+     private Company getOrThrowNotFound(Long id) {
+        return companyRepository.findById(id).orElseThrow(() -> new LocalizedResponseStatusException(HttpStatus.NOT_FOUND, "company.not.found"));
     }
 }
