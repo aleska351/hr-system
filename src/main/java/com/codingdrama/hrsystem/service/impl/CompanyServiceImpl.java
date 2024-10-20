@@ -1,6 +1,7 @@
 package com.codingdrama.hrsystem.service.impl;
 
 import com.codingdrama.hrsystem.exceptions.LocalizedResponseStatusException;
+import com.codingdrama.hrsystem.model.Address;
 import com.codingdrama.hrsystem.model.Company;
 import com.codingdrama.hrsystem.model.CompanyStatus;
 import com.codingdrama.hrsystem.repository.AddressRepository;
@@ -47,6 +48,9 @@ public class CompanyServiceImpl implements CompanyService {
         
         Company company = modelMapper.map(createCompanyRequest, Company.class);
         company.setCompanyStatus(CompanyStatus.CREATED);
+        
+        Address address = modelMapper.map(company.getAddress(), Address.class);
+        addressRepository.save(address);
 
         Company createdCompany = companyRepository.save(company);
 
@@ -70,6 +74,7 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public void delete(Long id) {
+        companyRepository.findById(id).orElseThrow(() -> new LocalizedResponseStatusException(HttpStatus.NOT_FOUND, "company.not.found"));
         companyRepository.deleteById(id);
     }
 }
