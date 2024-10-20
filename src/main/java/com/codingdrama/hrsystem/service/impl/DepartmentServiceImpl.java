@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.codingdrama.hrsystem.util.FieldUtil.updateFields;
+
 @Service
 @Transactional
 @Slf4j
@@ -51,7 +53,9 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public DepartmentDto updateDepartment(Long id, DepartmentDto company) {
-        return null;
+        Department existedDepartment = getOrThrowNotFound(id);
+        updateFields(company, existedDepartment);
+        return modelMapper.map(departmentRepository.save(existedDepartment), DepartmentDto.class);
     }
    
 
@@ -67,6 +71,10 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public void delete(Long id) {
-
+        departmentRepository.deleteById(id);
+    }
+    
+     private Department getOrThrowNotFound(Long id) {
+        return departmentRepository.findById(id).orElseThrow(() -> new LocalizedResponseStatusException(HttpStatus.NOT_FOUND, "department.not.found"));
     }
 }
