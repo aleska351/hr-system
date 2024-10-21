@@ -32,17 +32,6 @@ public class UserUtil {
     }
 
     /**
-     * Returns the reCAPTCHA token from the HttpServletRequest.
-     * @param request The HttpServletRequest object.
-     * @return The reCAPTCHA token.
-     * @throws LocalizedResponseStatusException if the token is not provided.
-     */
-    public static String getRecaptcha(HttpServletRequest request) {
-        final String xfHeader = request.getHeader("g-recaptcha-response");
-        return xfHeader;
-    }
-
-    /**
      * Returns authorization token from the HttpServletRequest.
      * @param request The HttpServletRequest object.
      * @return The authorization token or null if not provided.
@@ -52,21 +41,7 @@ public class UserUtil {
         final String accessToken = request.getHeader(HttpHeaders.AUTHORIZATION);
         return Objects.nonNull(accessToken) ? accessToken.startsWith("Bearer ") ?  accessToken.substring(7) : accessToken : null;
     }
-
-
-    /**
-     * Returns the two-factor authentication token from the HttpServletRequest.
-     * @param request The HttpServletRequest object.
-     * @return The two-factor authentication token.
-     * @throws LocalizedResponseStatusException if the token is not provided.
-     */
-    public static String getTwoFactorToken(HttpServletRequest request) {
-        final String xTwoFactorHeader = request.getHeader("X-TwoFactorToken");
-        if (xTwoFactorHeader == null || xTwoFactorHeader.isEmpty()) {
-            throw new LocalizedResponseStatusException(HttpStatus.UNAUTHORIZED, "mfa.not.provided");
-        }
-        return xTwoFactorHeader;
-    }
+    
 
     /**
      * Returns the email confirmation token from the HttpServletRequest.
@@ -81,20 +56,7 @@ public class UserUtil {
         }
         return confirmationEmailToken;
     }
-
-    /**
-     * Returns an array of null property names from the input object.
-     * @param object The object to check for null properties.
-     * @return An array of null property names.
-     */
-    public static String[] getNullPropertyNames(Object object) {
-        BeanWrapper src = new BeanWrapperImpl(object);
-        return Arrays.stream(src.getPropertyDescriptors())
-                       .map(PropertyDescriptor::getName)
-                       .filter(name -> src.getPropertyValue(name) == null)
-                       .toArray(String[]::new);
-    }
-
+    
     public static AuthenticatedUserDetails getLoggedInUser() {
         SecurityContext context = SecurityContextHolder.getContext();
 
