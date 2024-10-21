@@ -110,17 +110,6 @@ public class AuthController {
 //        authService.logout(loggedInUser.getEmail());
         return ResponseEntity.ok(new MessageResponse("Success"));
     }
-
-    @Operation(summary = "Update user password")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200"),  @ApiResponse(responseCode = "401", description = "Possible reasons: \n * invalid.jwt.token: Invalid authorization token",content ={ @Content(mediaType = "application/json",
-            schema = @Schema(implementation = LocalizedResponse.class)) })})
-    @SecurityRequirement(name = "Bearer Authentication")
-    @PostMapping("/reject-change-password")
-    public ResponseEntity<MessageResponse> changePasswordLater() {
-        AuthenticatedUserDetails loggedInUser = UserUtil.getLoggedInUser();
-        authService.updatePasswordLatter(loggedInUser.getEmail());
-        return ResponseEntity.ok(new MessageResponse("Success"));
-    }
     
 
     @ApiResponses(value = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "401", description = "Possible reasons: \n * invalid.jwt.token: Invalid authorization token",content ={ @Content(mediaType = "application/json",

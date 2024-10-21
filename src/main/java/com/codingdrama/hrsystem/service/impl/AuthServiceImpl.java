@@ -165,27 +165,9 @@ public class AuthServiceImpl implements AuthService {
     public void updatePassword(String email, String newPassword) {
         User user = getOrThrowNotFound(email);
         user.setPassword(passwordEncoder.encode(newPassword));
-//        user.setPasswordExpiredDate(LocalDateTime.now().plus(passwordExpirationTime)));
+        user.setPasswordExpiredDate(LocalDateTime.now().plus(passwordExpirationTime, ChronoUnit.SECONDS));
         log.info("Password for email {} was updated at time {}", email, LocalDateTime.now());
         userRepository.save(user);
-    }
-
-    @Override
-    public void updatePasswordLatter(String email) {
-        User user = getOrThrowNotFound(email);
-        user.setPasswordExpiredDate(LocalDateTime.now().plus(passwordExpirationTime, ChronoUnit.SECONDS));
-        userRepository.save(user);
-        log.info("Password updating for email {} was reject for next 90 days", email);
-    }
-
-    public boolean isNewPasswordValid(String newPassword, List<String> previousPasswords) {
-        // Check if the new password matches any of the previous ones
-        for (String password : previousPasswords) {
-            if (passwordEncoder.matches(newPassword, password)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override

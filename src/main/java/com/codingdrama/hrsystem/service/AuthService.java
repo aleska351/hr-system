@@ -50,12 +50,7 @@ public interface AuthService {
      * @param password the new password
      */
     void updatePassword(String email, String password);
-
-    /**
-     * Put off user's password updating to 90 days.
-     * @param email the email address of the user whose password is being updated
-     */
-    void updatePasswordLatter(String email);
+    
 
     /**
      * Logs out a user.
