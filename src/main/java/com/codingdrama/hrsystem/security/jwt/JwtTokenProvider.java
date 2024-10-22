@@ -38,9 +38,6 @@ public class JwtTokenProvider {
     @Value("${jwt.access.expired}")
     private long expirationPeriod;
 
-    @Value("${jwt.temp.expired}")
-    private long tempExpirationPeriod;
-
     @Value("${jwt.refresh.expired}")
     private long refreshExpirationPeriod;
 
@@ -163,10 +160,6 @@ public class JwtTokenProvider {
 
     public String getHash(Claims claims) {
         return claims.get("hash", String.class);
-    }
-
-    public String getIp(Claims claims) {
-        return claims.get("ip", String.class);
     }
 
     public String getUsername(String token) {

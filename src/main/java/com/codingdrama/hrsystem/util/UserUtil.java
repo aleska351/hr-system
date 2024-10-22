@@ -4,16 +4,12 @@ import com.codingdrama.hrsystem.exceptions.LocalizedResponseStatusException;
 import com.codingdrama.hrsystem.security.AuthenticatedUserDetails;
 import com.codingdrama.hrsystem.security.jwt.JwtAuthentication;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.beans.PropertyDescriptor;
-import java.util.Arrays;
 import java.util.Objects;
 
 public class UserUtil {
@@ -76,8 +72,6 @@ public class UserUtil {
         if (principal instanceof AuthenticatedUserDetails) {
             return (AuthenticatedUserDetails) principal;
         }
-
-
         throw new LocalizedResponseStatusException(HttpStatus.UNAUTHORIZED, "unauthenticated.request");
     }
 }
